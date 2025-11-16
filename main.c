@@ -252,7 +252,7 @@ int main(void)
             if (scrollOffset > track_count - visibleRows) scrollOffset = track_count - visibleRows;
         }
 
-        // D. GAMBAR (DRAWING)
+        // D. RENDERING UI
         BeginDrawing();
         ClearBackground((Color){18,18,18,255}); 
 
@@ -269,7 +269,6 @@ int main(void)
 
         int startIndex = scrollOffset;
         
-        // Kita tambahkan +1 baris biar scrolling-nya mulus (gak patah pas di ujung)
         for (int i = 0; i < visibleRows + 1; i++)
         {
             int idx = startIndex + i;
@@ -282,19 +281,15 @@ int main(void)
             if (idx == current_track) DrawRectangleRec(itemRec, (Color){30,120,70,180});
             else DrawRectangleRec(itemRec, (Color){28,28,28,220});
 
-            // --- JUDUL LAGU ---
             const char *nameOnly = GetFileName(playlist[idx]);
             char listBuffer[256];
             snprintf(listBuffer, 256, "%d. %s", idx + 1, nameOnly);
 
-            // Gambar teks biasa (karena sudah ada ScissorMode, teks kepanjangan otomatis kepotong visualnya)
             DrawText(listBuffer, (int)(itemRec.x + 6), (int)(itemRec.y + 8), 14, RAYWHITE);
 
-            // Logika Klik
             Vector2 mp = GetMousePosition();
             if (CheckCollisionPointRec(mp, itemRec) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
-                // Cek lagi: Klik harus beneran di dalam area visual (biar gak ngeklik "hantu" di luar kotak)
                 if (CheckCollisionPointRec(mp, listArea)) 
                 {
                     current_track = idx;
@@ -303,8 +298,6 @@ int main(void)
             }
         }
 
-        // 2. Matikan MODE GUNTING (PENTING!)
-        // Biar tombol-tombol di bawahnya gak ikutan ilang.
         EndScissorMode();
 
         // 2. AREA UTAMA 
@@ -313,20 +306,16 @@ int main(void)
 
        if (track_count > 0)
         {
-            // --- LOGIKA POTONG TEKS (JUDUL UTAMA) ---
             const char *titleRaw = GetFileName(playlist[current_track]);
             char titleBuffer[256];
-            snprintf(titleBuffer, 256, "%s", titleRaw); // Salin ke buffer
+            snprintf(titleBuffer, 256, "%s", titleRaw);
 
-            // Hitung batas lebar. Lebar kotak dikurang sedikit biar ada sisa kanan-kiri.
-            // Rumus: (Lebar Window - Lebar Sidebar - 100 pixel padding)
             int maxTitleWidth = WINDOW_W - SIDEBAR_W - 100; 
-            int fontSize = 16; // Ukuran font judul
+            int fontSize = 16; 
 
-            // Cek kalau kepanjangan
             if (MeasureText(titleBuffer, fontSize) > maxTitleWidth)
             {
-                // Potong huruf dari belakang sampai muat
+                
                 while (MeasureText(titleBuffer, fontSize) > maxTitleWidth - 20)
                 {
                     int len = strlen(titleBuffer);
@@ -336,9 +325,9 @@ int main(void)
                 strcat(titleBuffer, "..."); // Tambah titik-titik
             }
 
-            // Gambar teks hasil sunat
+       
             DrawText(titleBuffer, SIDEBAR_W + 40, 58, fontSize, (Color){180,220,180,255});
-            // ----------------------------------------
+            
         }
         else
         {
