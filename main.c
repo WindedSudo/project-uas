@@ -310,10 +310,39 @@ int main(void)
         DrawRectangle(SIDEBAR_W + 20, 18, WINDOW_W - SIDEBAR_W - 40, 120, (Color){28,28,28,255});
         DrawText("Sedang Diputar", SIDEBAR_W + 40, 28, 20, (Color){200,200,200,255});
 
-        if (track_count > 0)
-            DrawText(GetFileName(playlist[current_track]), SIDEBAR_W + 40, 58, 16, (Color){180,220,180,255});
+       if (track_count > 0)
+        {
+            // --- LOGIKA POTONG TEKS (JUDUL UTAMA) ---
+            const char *titleRaw = GetFileName(playlist[current_track]);
+            char titleBuffer[256];
+            snprintf(titleBuffer, 256, "%s", titleRaw); // Salin ke buffer
+
+            // Hitung batas lebar. Lebar kotak dikurang sedikit biar ada sisa kanan-kiri.
+            // Rumus: (Lebar Window - Lebar Sidebar - 100 pixel padding)
+            int maxTitleWidth = WINDOW_W - SIDEBAR_W - 100; 
+            int fontSize = 16; // Ukuran font judul
+
+            // Cek kalau kepanjangan
+            if (MeasureText(titleBuffer, fontSize) > maxTitleWidth)
+            {
+                // Potong huruf dari belakang sampai muat
+                while (MeasureText(titleBuffer, fontSize) > maxTitleWidth - 20)
+                {
+                    int len = strlen(titleBuffer);
+                    if (len > 0) titleBuffer[len - 1] = '\0'; 
+                    else break;
+                }
+                strcat(titleBuffer, "..."); // Tambah titik-titik
+            }
+
+            // Gambar teks hasil sunat
+            DrawText(titleBuffer, SIDEBAR_W + 40, 58, fontSize, (Color){180,220,180,255});
+            // ----------------------------------------
+        }
         else
+        {
             DrawText("Belum ada lagu... Upload dulu!", SIDEBAR_W + 40, 58, 16, (Color){200,120,120,255});
+        }
 
         Rectangle artRec = (Rectangle){ SIDEBAR_W + 40, 150, 220, 220 };
         DrawRectangleRec(artRec, (Color){40,40,40,255});
