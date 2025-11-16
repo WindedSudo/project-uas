@@ -265,46 +265,47 @@ int main(void)
         DrawRectangleRec(listArea, (Color){20,20,20,255});
         DrawRectangleLinesEx(listArea, 2, (Color){40,40,40,255});
 
+        BeginScissorMode((int)listArea.x, (int)listArea.y, (int)listArea.width, (int)listArea.height);
+
         int startIndex = scrollOffset;
-        for (int i = 0; i < visibleRows; i++)
+        
+        // Kita tambahkan +1 baris biar scrolling-nya mulus (gak patah pas di ujung)
+        for (int i = 0; i < visibleRows + 1; i++)
         {
             int idx = startIndex + i;
-            if (idx >= track_count) break; 
+            if (idx >= track_count) break;
             
             float y = listArea.y + i * rowHeight;
             Rectangle itemRec = (Rectangle){ listArea.x, y, listArea.width, rowHeight - 6 };
 
-            if (idx == current_track) DrawRectangleRec(itemRec, (Color){30,120,70,180}); 
-            else DrawRectangleRec(itemRec, (Color){28,28,28,220}); 
+            // Gambar Background Item
+            if (idx == current_track) DrawRectangleRec(itemRec, (Color){30,120,70,180});
+            else DrawRectangleRec(itemRec, (Color){28,28,28,220});
 
-            const char *fileNameDisplay = GetFileName(playlist[idx]);
+            // --- JUDUL LAGU ---
+            const char *nameOnly = GetFileName(playlist[idx]);
+            char listBuffer[256];
+            snprintf(listBuffer, 256, "%d. %s", idx + 1, nameOnly);
 
-            char textBuffer[256];
-            snprintf(textBuffer, 256, "%d. %s", idx+1, fileNameDisplay);
+            // Gambar teks biasa (karena sudah ada ScissorMode, teks kepanjangan otomatis kepotong visualnya)
+            DrawText(listBuffer, (int)(itemRec.x + 6), (int)(itemRec.y + 8), 14, RAYWHITE);
 
-            // MEMBATASI PANJANG TEKS AGAR TIDAK MELAMPAUI KOTAK
-            int maxTextWidth = (int)itemRec.width - 20; 
-            
-            if (MeasureText(textBuffer, 14) > maxTextWidth)
-            {
-                while (MeasureText(textBuffer, 14) > maxTextWidth - 15)
-                {
-                    int len = strlen(textBuffer);
-                    if (len > 0) textBuffer[len - 1] = '\0'; 
-                    else break;
-                }
-                strcat(textBuffer, "..."); 
-            }
-
-            DrawText(textBuffer, (int)(itemRec.x + 6), (int)(itemRec.y + 8), 14, RAYWHITE);
-
+            // Logika Klik
             Vector2 mp = GetMousePosition();
             if (CheckCollisionPointRec(mp, itemRec) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
-                current_track = idx;
-                LoadAndPlayTrack(current_track, &music, &musicLoaded, &isPlaying);
+                // Cek lagi: Klik harus beneran di dalam area visual (biar gak ngeklik "hantu" di luar kotak)
+                if (CheckCollisionPointRec(mp, listArea)) 
+                {
+                    current_track = idx;
+                    LoadAndPlayTrack(current_track, &music, &musicLoaded, &isPlaying);
+                }
             }
         }
+
+        // 2. Matikan MODE GUNTING (PENTING!)
+        // Biar tombol-tombol di bawahnya gak ikutan ilang.
+        EndScissorMode();
 
         // 2. AREA UTAMA 
         DrawRectangle(SIDEBAR_W + 20, 18, WINDOW_W - SIDEBAR_W - 40, 120, (Color){28,28,28,255});
