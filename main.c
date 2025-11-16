@@ -330,7 +330,7 @@ int main(void)
         Rectangle prevBtn = (Rectangle){ controlsX, controlsY, 90, 40 };
         Rectangle playBtn = (Rectangle){ controlsX + 110, controlsY, 100, 40 };
         Rectangle nextBtn = (Rectangle){ controlsX + 230, controlsY, 90, 40 };
-        Rectangle uploadBtn = (Rectangle){ controlsX + -415, uploadY, 100, 40 };
+        Rectangle uploadBtn = (Rectangle){ controlsX + -410, uploadY, 100, 40 };
         Rectangle deleteBtn = (Rectangle){ controlsX + -550, deleteY, 100, 40 };
 
         if (GuiButton(prevBtn, "<< Prev"))
